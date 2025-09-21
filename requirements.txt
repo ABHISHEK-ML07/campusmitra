@@ -1,0 +1,6 @@
+flask
+flask-socketio
+eventlet
+google-cloud-aiplatform
+google-generativeai
+google-cloud-firestore
