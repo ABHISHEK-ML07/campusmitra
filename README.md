@@ -9,6 +9,8 @@ A hackathon project using Google Cloud tech (Vertex AI, Gemini, Firestore) for y
 - **Dashboard**: Aggregated trends (Firestore).
 
 ## Setup
+Clone this repo:
+git clone https://github.com/ABHISHEK-ML07/campusmitra.git
 1. Install Anaconda: `conda create -n campusmitra python=3.12`
 2. Activate: `conda activate campusmitra`
 3. Install deps: `pip install -r requirements.txt`
@@ -16,4 +18,5 @@ A hackathon project using Google Cloud tech (Vertex AI, Gemini, Firestore) for y
 5. Run: `python app.py`
 
 ## Demo
+
 Access at http://localhost:5000 (backend) and open index.html (frontend).
