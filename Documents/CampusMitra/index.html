@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusMitra - Mental Wellness Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A90E2',
+                        secondary: '#E0F7FA',
+                        accent: '#FF9E80',
+                        success: '#4CAF50',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f9fafb; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .wave-bg { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%234A90E2' fill-opacity='0.1' d='M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,213.3C672,192,768,128,864,128C960,128,1056,192,1152,213.3C1248,235,1344,213,1392,202.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E"); background-size: cover; background-position: center bottom; background-repeat: no-repeat; }
+        .chat-bubble-user { border-top-right-radius: 0; background-color: #4A90E2; color: white; }
+        .chat-bubble-ai { border-top-left-radius: 0; background-color: #f3f4f6; color: #4b5563; }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(74, 144, 226, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 144, 226, 0); } }
+        .letter-reveal { background: linear-gradient(90deg, #4A90E2, #E0F7FA, #4A90E2); background-size: 200% auto; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: reveal 3s linear infinite; }
+        @keyframes reveal { 0% { background-position: 0% center; } 100% { background-position: 200% center; } }
+        .main-container { max-width: 1400px; margin: 0 auto; }
+        .sidebar { width: 260px; flex-shrink: 0; }
+        .content-area { flex-grow: 1; min-width: 0; }
+        @media (max-width: 1024px) { .sidebar { width: 220px; } }
+        @media (max-width: 768px) { .sidebar { width: 100%; position: fixed; bottom: 0; z-index: 40; height: auto; } .content-area { margin-bottom: 80px; } }
+    </style>
+</head>
+<body class="min-h-screen bg-secondary">
+    <div class="main-container flex min-h-screen">
+        <div class="sidebar bg-white shadow-lg hidden md:block">
+            <div class="p-6">
+                <div class="flex items-center mb-10">
+                    <div class="bg-primary rounded-full p-2 mr-3">
+                        <i class="fas fa-brain text-white text-xl"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold text-primary">Campus<span class="text-accent">Mitra</span></h1>
+                </div>
+                <nav class="space-y-2">
+                    <a href="#mindchat" class="flex items-center p-3 rounded-lg bg-primary text-white">
+                        <i class="fas fa-comment-dots mr-3"></i>
+                        <span>MindChat</span>
+                    </a>
+                    <a href="#hopekit" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100">
+                        <i class="fas fa-seedling mr-3"></i>
+                        <span>HopeKit</span>
+                    </a>
+                    <a href="#booksafe" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100">
+                        <i class="fas fa-hand-holding-heart mr-3"></i>
+                        <span>BookSafe</span>
+                    </a>
+                    <a href="#counselor" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100">
+                        <i class="fas fa-video mr-3"></i>
+                        <span>Counselor Meet</span>
+                    </a>
+                    <a href="#dashboard" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100">
+                        <i class="fas fa-chart-bar mr-3"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </nav>
+                <div class="mt-10 p-4 bg-secondary rounded-lg">
+                    <h3 class="font-semibold text-primary mb-2">Need immediate help?</h3>
+                    <p class="text-sm text-gray-700">Contact a counselor now</p>
+                    <button class="mt-3 w-full bg-success text-white py-2 rounded-lg text-sm font-medium">
+                        <i class="fas fa-phone-alt mr-1"></i> Emergency Contact
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="content-area">
+            <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
+                <div class="flex items-center md:hidden">
+                    <div class="bg-primary rounded-full p-2 mr-3">
+                        <i class="fas fa-brain text-white text-xl"></i>
+                    </div>
+                    <h1 class="text-xl font-bold text-primary">Campus<span class="text-accent">Mitra</span></h1>
+                </div>
+                <div class="flex items-center">
+                    <div class="relative">
+                        <input type="text" placeholder="Search..." class="bg-gray-100 rounded-full py-2 pl-10 pr-4 w-64 focus:outline-none focus:ring-2 focus:ring-primary">
+                        <i class="fas fa-search absolute left-3 top-2.5 text-gray-500"></i>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <button class="bg-primary text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-blue-600 transition-colors">
+                        <i class="fas fa-user mr-2"></i>Login
+                    </button>
+                </div>
+            </header>
+            <main class="p-6">
+                <section id="mindchat" class="mb-12">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="bg-primary text-white p-4 flex items-center">
+                            <div class="bg-white rounded-full p-2 mr-3">
+                                <i class="fas fa-robot text-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-semibold">MannMitra</h2>
+                                <p class="text-sm opacity-80">Your AI companion (Powered by Google Vertex AI & Gemini)</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col lg:flex-row">
+                            <div class="lg:w-2/3">
+                                <div id="chat-messages" class="h-96 overflow-y-auto p-4 bg-gray-50"></div>
+                                <div class="px-4 py-2 bg-gray-100 border-t border-gray-200">
+                                    <div class="flex flex-wrap gap-2">
+                                        <button class="quick-reply bg-white text-primary border border-primary rounded-full px-3 py-1 text-sm hover:bg-primary hover:text-white transition-colors">
+                                            I'm stressed 😟
+                                        </button>
+                                        <button class="quick-reply bg-white text-primary border border-primary rounded-full px-3 py-1 text-sm hover:bg-primary hover:text-white transition-colors">
+                                            I'm anxious 😰
+                                        </button>
+                                        <button class="quick-reply bg-white text-primary border border-primary rounded-full px-3 py-1 text-sm hover:bg-primary hover:text-white transition-colors">
+                                            I'm hopeless 😔
+                                        </button>
+                                        <button class="quick-reply bg-white text-primary border border-primary rounded-full px-3 py-1 text-sm hover:bg-primary hover:text-white transition-colors">
+                                            Exam pressure 😫
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-white border-t border-gray-200">
+                                    <div class="flex items-center">
+                                        <input id="chat-input" type="text" placeholder="Type your message here..." class="flex-grow border border-gray-300 rounded-l-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-primary" aria-label="Type your message">
+                                        <button id="send-message" class="bg-primary text-white rounded-r-full px-4 py-2 hover:bg-blue-600 transition-colors">
+                                            <i class="fas fa-paper-plane"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="lg:w-1/3 bg-gray-50 p-4 border-l border-gray-200">
+                                <div class="bg-white rounded-lg p-4 shadow-sm">
+                                    <div class="text-center mb-4">
+                                        <div class="w-16 h-16 bg-primary rounded-full mx-auto flex items-center justify-center text-white text-2xl">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <h3 class="font-semibold mt-2">Anonymous User</h3>
+                                        <p class="text-sm text-gray-600">IIT Delhi</p>
+                                    </div>
+                                    <div class="space-y-3">
+                                        <div class="flex items-center p-2 bg-secondary rounded-lg">
+                                            <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white mr-2">
+                                                <i class="fas fa-heart"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium">Wellness Score</p>
+                                                <p id="wellness-score" class="text-xs text-gray-600">72% (Good)</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center p-2 bg-secondary rounded-lg">
+                                            <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white mr-2">
+                                                <i class="fas fa-calendar"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium">Last Session</p>
+                                                <p id="last-session" class="text-xs text-gray-600">3 days ago</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center p-2 bg-secondary rounded-lg">
+                                            <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white mr-2">
+                                                <i class="fas fa-tools"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium">Tools Used</p>
+                                                <p id="tools-used" class="text-xs text-gray-600">Breathing, Journaling</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button id="start-hopekit" class="w-full mt-4 bg-primary text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors">
+                                        <i class="fas fa-plus mr-2"></i> Start HopeKit Session
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section id="hopekit" class="mb-12 wave-bg py-8 px-6 rounded-xl hidden">
+                    <div class="max-w-4xl mx-auto">
+                        <h2 class="text-2xl font-bold text-primary mb-6">HopeKit - Therapeutic Intervention</h2>
+                        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                            <div class="bg-primary text-white p-6 text-center">
+                                <h3 class="text-2xl font-bold mb-2">Future Self Exercise</h3>
+                                <p class="opacity-90">Visualize your best possible future self (Powered by Google Gemini)</p>
+                            </div>
+                            <div class="p-6">
+                                <div class="mb-6">
+                                    <label class="block text-gray-700 font-medium mb-2" for="hopekit-input">
+                                        Share a future aspiration or hope:
+                                    </label>
+                                    <textarea id="hopekit-input" placeholder="e.g., I want to graduate and help my family financially" class="w-full border border-gray-300 rounded-lg p-4 h-32 focus:outline-none focus:ring-2 focus:ring-primary" aria-label="Aspiration input"></textarea>
+                                </div>
+                                <button id="generate-hopekit" class="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors">
+                                    Generate HopeKit <i class="fas fa-magic ml-2"></i>
+                                </button>
+                                <div id="hopekit-output" class="mt-8 bg-secondary rounded-xl p-6 hidden">
+                                    <h4 class="text-lg font-semibold text-primary mb-4">Your HopeKit</h4>
+                                    <div id="hopekit-letter" class="letter-reveal mb-4"></div>
+                                    <h4 class="text-lg font-semibold text-primary mb-2">Grounding Exercise</h4>
+                                    <div id="hopekit-grounding" class="text-gray-700"></div>
+                                    <a href="#booksafe" class="mt-4 inline-block bg-success text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">
+                                        Connect to Counselor
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section id="booksafe" class="mb-12 hidden">
+                    <div class="max-w-4xl mx-auto">
+                        <h2 class="text-2xl font-bold text-primary mb-6">BookSafe - Connect with a Counselor</h2>
+                        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                            <div class="bg-success text-white p-6 text-center">
+                                <h3 class="text-2xl font-bold mb-2">Professional Support</h3>
+                                <p class="opacity-90">Connect with certified mental health professionals</p>
+                            </div>
+                            <div class="p-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                    <div>
+                                        <label class="block text-gray-700 font-medium mb-2" for="booksafe-name">Name</label>
+                                        <input id="booksafe-name" type="text" class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary">
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-700 font-medium mb-2" for="booksafe-email">Email</label>
+                                        <input id="booksafe-email" type="email" class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary">
+                                    </div>
+                                </div>
+                                <div class="mb-6">
+                                    <label class="block text-gray-700 font-medium mb-2" for="booksafe-concern">Primary Concern</label>
+                                    <select id="booksafe-concern" class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary">
+                                        <option value="">Select your primary concern</option>
+                                        <option value="anxiety">Anxiety</option>
+                                        <option value="depression">Depression</option>
+                                        <option value="relationships">Relationship Issues</option>
+                                        <option value="academic">Academic Pressure</option>
+                                        <option value="family">Family Issues</option>
+                                    </select>
+                                </div>
+                                <div class="mb-6 p-4 bg-secondary rounded-lg">
+                                    <div class="flex items-start">
+                                        <input id="booksafe-consent" type="checkbox" class="mt-1 mr-3 h-5 w-5 text-primary">
+                                        <label for="booksafe-consent" class="text-gray-700">I consent to anonymized sharing of my conversation with MannMitra to help the counselor.</label>
+                                    </div>
+                                </div>
+                                <button id="book-session" class="w-full bg-success text-white py-3 rounded-lg font-medium hover:bg-green-600 transition-colors">
+                                    Book Session <i class="fas fa-calendar-check ml-2"></i>
+                                </button>
+                                <p id="booksafe-response" class="mt-2 text-center text-green-600 hidden"></p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section id="counselor" class="mb-12 hidden">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                        <div class="bg-success text-white p-6 text-center">
+                            <h2 class="text-2xl font-bold mb-2">Counselor Meet</h2>
+                            <p class="opacity-90">Live session with a mental health professional</p>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex flex-col lg:flex-row gap-6">
+                                <div class="lg:w-2/3">
+                                    <div class="bg-black aspect-video rounded-lg overflow-hidden mb-4">
+                                        <div class="h-full flex items-center justify-center bg-gray-800">
+                                            <div class="text-center text-white">
+                                                <i class="fas fa-video text-4xl mb-2 opacity-50"></i>
+                                                <p>Video feed will appear here</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-center space-x-4 mb-6">
+                                        <button class="bg-gray-200 text-gray-800 rounded-full p-3 hover:bg-gray-300 transition-colors">
+                                            <i class="fas fa-microphone"></i>
+                                        </button>
+                                        <button class="bg-gray-200 text-gray-800 rounded-full p-3 hover:bg-gray-300 transition-colors">
+                                            <i class="fas fa-video"></i>
+                                        </button>
+                                        <button class="bg-red-500 text-white rounded-full p-3 hover:bg-red-600 transition-colors">
+                                            <i class="fas fa-phone-slash"></i>
+                                        </button>
+                                    </div>
+                                    <div class="bg-gray-100 rounded-xl p-4">
+                                        <h3 class="font-semibold text-gray-800 mb-3">Session Details</h3>
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <p class="text-sm text-gray-600">Counselor</p>
+                                                <p class="font-medium">Dr. Priya Sharma</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-gray-600">Specialization</p>
+                                                <p class="font-medium">Anxiety, Depression</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-gray-600">Session Duration</p>
+                                                <p class="font-medium">45 minutes</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-gray-600">Time Remaining</p>
+                                                <p class="font-medium">32 minutes</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="lg:w-1/3">
+                                    <div class="bg-gray-100 rounded-xl p-4 h-96">
+                                        <h3 class="font-semibold text-gray-800 mb-3">Session Chat</h3>
+                                        <div id="counselor-chat" class="space-y-3 mb-4 h-64 overflow-y-auto"></div>
+                                        <div class="flex">
+                                            <input id="counselor-input" type="text" placeholder="Type a message..." class="flex-grow border border-gray-300 rounded-l-lg p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary">
+                                            <button id="counselor-send" class="bg-primary text-white rounded-r-lg px-3 hover:bg-blue-600 transition-colors">
+                                                <i class="fas fa-paper-plane"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section id="dashboard" class="mb-12 hidden">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                        <div class="bg-primary text-white p-6">
+                            <h2 class="text-2xl font-bold mb-2">Campus Insights Dashboard</h2>
+                            <p class="opacity-90">Aggregated, anonymized trends (Powered by Google Firestore)</p>
+                        </div>
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                                <div class="bg-secondary rounded-xl p-6 text-center">
+                                    <div class="bg-primary rounded-full p-3 inline-flex items-center justify-center mb-4">
+                                        <i class="fas fa-exclamation-triangle text-white text-xl"></i>
+                                    </div>
+                                    <p id="risk-triggers" class="text-3xl font-bold text-primary mb-2">0</p>
+                                    <p class="text-gray-600">Risk Triggers</p>
+                                </div>
+                                <div class="bg-secondary rounded-xl p-6 text-center">
+                                    <div class="bg-success rounded-full p-3 inline-flex items-center justify-center mb-4">
+                                        <i class="fas fa-hands-helping text-white text-xl"></i>
+                                    </div>
+                                    <p id="counseling-referrals" class="text-3xl font-bold text-success mb-2">0</p>
+                                    <p class="text-gray-600">Counseling Referrals</p>
+                                </div>
+                                <div class="bg-secondary rounded-xl p-6 text-center">
+                                    <div class="bg-accent rounded-full p-3 inline-flex items-center justify-center mb-4">
+                                        <i class="fas fa-users text-white text-xl"></i>
+                                    </div>
+                                    <p id="active-users" class="text-3xl font-bold text-accent mb-2">0</p>
+                                    <p class="text-gray-600">Active Users</p>
+                                </div>
+                                <div class="bg-secondary rounded-xl p-6 text-center">
+                                    <div class="bg-purple-500 rounded-full p-3 inline-flex items-center justify-center mb-4">
+                                        <i class="fas fa-smile text-white text-xl"></i>
+                                    </div>
+                                    <p id="wellness-score-dashboard" class="text-3xl font-bold text-purple-500 mb-2">0%</p>
+                                    <p class="text-gray-600">Wellness Score</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div class="bg-gray-50 p-6 rounded-xl">
+                                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Common Concerns</h3>
+                                    <div id="common-concerns" class="space-y-4"></div>
+                                </div>
+                                <div class="bg-gray-50 p-6 rounded-xl">
+                                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Institutional Recommendations</h3>
+                                    <div id="recommendations" class="space-y-3"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+            <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white shadow-lg z-40">
+                <div class="flex justify-around">
+                    <a href="#mindchat" class="flex flex-col items-center p-3 text-primary">
+                        <i class="fas fa-comment-dots mb-1"></i>
+                        <span class="text-xs">Chat</span>
+                    </a>
+                    <a href="#hopekit" class="flex flex-col items-center p-3 text-gray-600">
+                        <i class="fas fa-seedling mb-1"></i>
+                        <span class="text-xs">HopeKit</span>
+                    </a>
+                    <a href="#booksafe" class="flex flex-col items-center p-3 text-gray-600">
+                        <i class="fas fa-hand-holding-heart mb-1"></i>
+                        <span class="text-xs">BookSafe</span>
+                    </a>
+                    <a href="#counselor" class="flex flex-col items-center p-3 text-gray-600">
+                        <i class="fas fa-video mb-1"></i>
+                        <span class="text-xs">Counselor</span>
+                    </a>
+                    <a href="#dashboard" class="flex flex-col items-center p-3 text-gray-600">
+                        <i class="fas fa-chart-bar mb-1"></i>
+                        <span class="text-xs">Dashboard</span>
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </div>
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({ top: targetElement.offsetTop - 20, behavior: 'smooth' });
+                    document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
+                    document.querySelector(targetId).classList.remove('hidden');
+                }
+                if (window.innerWidth < 768) {
+                    document.querySelectorAll('nav a').forEach(a => a.classList.remove('text-primary').add('text-gray-600'));
+                    this.classList.remove('text-gray-600').add('text-primary');
+                }
+            });
+        });
+
+        window.addEventListener('scroll', () => {
+            if (window.innerWidth < 768) {
+                const sections = document.querySelectorAll('section');
+                const navLinks = document.querySelectorAll('nav a');
+                let currentSection = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 100) currentSection = section.getAttribute('id');
+                });
+                navLinks.forEach(link => {
+                    link.classList.remove('text-primary').add('text-gray-600');
+                    if (link.getAttribute('href') === `#${currentSection}`) link.classList.remove('text-gray-600').add('text-primary');
+                });
+            }
+        });
+
+        const socket = io('http://localhost:5000');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const sendMessage = document.getElementById('send-message');
+        const startHopekit = document.getElementById('start-hopekit');
+
+        function appendMessage(text, sender) {
+            const div = document.createElement('div');
+            div.className = `mb-4 flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+            div.innerHTML = `<div class="max-w-xs md:max-w-md rounded-2xl px-4 py-2 ${sender === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai'} fade-in">${text}</div>`;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        socket.on('connect', () => appendMessage('Connected to MannMitra!', 'ai'));
+        socket.on('response', data => {
+            appendMessage(data.text, 'ai');
+            if (data.trigger_hopekit) document.querySelector('#hopekit').classList.remove('hidden');
+        });
+
+        sendMessage.addEventListener('click', () => {
+            const message = chatInput.value.trim();
+            if (message) {
+                appendMessage(message, 'user');
+                socket.emit('message', { message });
+                chatInput.value = '';
+            }
+        });
+
+        document.querySelectorAll('.quick-reply').forEach(btn => {
+            btn.addEventListener('click', () => {
+                chatInput.value = btn.textContent;
+                sendMessage.click();
+            });
+        });
+
+        startHopekit.addEventListener('click', () => document.querySelector('#hopekit').classList.remove('hidden'));
+
+        const hopekitInput = document.getElementById('hopekit-input');
+        const generateHopekit = document.getElementById('generate-hopekit');
+        const hopekitOutput = document.getElementById('hopekit-output');
+        const hopekitLetter = document.getElementById('hopekit-letter');
+        const hopekitGrounding = document.getElementById('hopekit-grounding');
+
+        generateHopekit.addEventListener('click', () => {
+            const aspiration = hopekitInput.value.trim();
+            if (aspiration) {
+                fetch('http://localhost:5000/generate_hopekit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ aspiration })
+                }).then(res => res.json()).then(data => {
+                    hopekitLetter.textContent = data.letter;
+                    hopekitGrounding.innerHTML = data.grounding.split('\n').map(line => `<p>${line}</p>`).join('');
+                    hopekitOutput.classList.remove('hidden');
+                });
+            }
+        });
+
+        const booksafeName = document.getElementById('booksafe-name');
+        const booksafeEmail = document.getElementById('booksafe-email');
+        const booksafeConcern = document.getElementById('booksafe-concern');
+        const booksafeConsent = document.getElementById('booksafe-consent');
+        const bookSession = document.getElementById('book-session');
+        const booksafeResponse = document.getElementById('booksafe-response');
+
+        bookSession.addEventListener('click', () => {
+            if (!booksafeConsent.checked) {
+                booksafeResponse.textContent = 'Please provide consent.';
+                booksafeResponse.classList.remove('hidden', 'text-green-600').add('text-red-600');
+                return;
+            }
+            fetch('http://localhost:5000/book_session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: booksafeName.value,
+                    email: booksafeEmail.value,
+                    concern: booksafeConcern.value,
+                    consent: booksafeConsent.checked
+                })
+            }).then(res => res.json()).then(data => {
+                booksafeResponse.textContent = data.message;
+                booksafeResponse.classList.remove('hidden', 'text-red-600');
+                if (data.success) booksafeResponse.classList.add('text-green-600');
+                if (data.success) document.querySelector('#counselor').classList.remove('hidden');
+            });
+        });
+
+        const counselorChat = document.getElementById('counselor-chat');
+        const counselorInput = document.getElementById('counselor-input');
+        const counselorSend = document.getElementById('counselor-send');
+
+        counselorSend.addEventListener('click', () => {
+            const message = counselorInput.value.trim();
+            if (message) {
+                const div = document.createElement('div');
+                div.className = 'bg-primary/10 rounded-lg p-3 ml-6';
+                div.innerHTML = `<p class="text-sm text-gray-700">${message}</p><span class="text-xs text-gray-500">${new Date().toLocaleTimeString()}</span>`;
+                counselorChat.appendChild(div);
+                counselorInput.value = '';
+                counselorChat.scrollTop = counselorChat.scrollHeight;
+                setTimeout(() => {
+                    const response = document.createElement('div');
+                    response.className = 'bg-white rounded-lg p-3';
+                    response.innerHTML = `<p class="text-sm text-gray-700">Dr. Sharma: Thank you for sharing. Let's explore that further.</p><span class="text-xs text-gray-500">${new Date().toLocaleTimeString()}</span>`;
+                    counselorChat.appendChild(response);
+                    counselorChat.scrollTop = counselorChat.scrollHeight;
+                }, 1000);
+            }
+        });
+
+        window.addEventListener('load', () => {
+            fetch('http://localhost:5000/dashboard').then(res => res.json()).then(data => {
+                document.getElementById('risk-triggers').textContent = data.triggers;
+                document.getElementById('counseling-referrals').textContent = data.referrals;
+                document.getElementById('active-users').textContent = data.users || 0;
+                document.getElementById('wellness-score-dashboard').textContent = `${data.wellness_score || 0}%`;
+                const concerns = data.concerns || { 'Academic Pressure': 65, 'Relationship Issues': 45, 'Family Expectations': 52 };
+                document.getElementById('common-concerns').innerHTML = Object.entries(concerns).map(([key, value]) => `
+                    <div>
+                        <div class="flex justify-between mb-1"><span class="text-gray-700">${key}</span><span class="text-gray-700">${value}%</span></div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5"><div class="bg-primary h-2.5 rounded-full" style="width: ${value}%"></div></div>
+                    </div>
+                `).join('');
+                document.getElementById('recommendations').innerHTML = (data.recommendations || [
+                    'Schedule wellness workshops during exam periods',
+                    'Provide faculty training to identify struggling students',
+                    'Establish peer support programs'
+                ]).map(rec => `
+                    <div class="flex items-start"><div class="bg-primary rounded-full p-1 mr-3 mt-1"><i class="fas fa-graduation-cap text-white text-sm"></i></div><p class="text-sm text-gray-700">${rec}</p></div>
+                `).join('');
+                document.querySelector('#dashboard').classList.remove('hidden');
+            });
+        });
+    </script>
+</body>
+</html>
